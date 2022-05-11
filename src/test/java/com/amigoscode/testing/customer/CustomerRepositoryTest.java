@@ -1,5 +1,6 @@
 package com.amigoscode.testing.customer;
 
+import org.hibernate.PropertyValueException;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
@@ -15,7 +16,7 @@ import static org.junit.jupiter.api.Assertions.*;
 @DataJpaTest(
         properties = {
                 "spring.jpa.properties.javax.persistence.validation.mode=none"
-        }
+        } // for column -> not null to take effect
 )
 class CustomerRepositoryTest {
 
@@ -24,13 +25,15 @@ class CustomerRepositoryTest {
 
     @Test
     void itShouldSelectCustomerByPhoneNumber() {
-        // Given
+        // Given sth
         UUID id = UUID.randomUUID();
         String phoneNumber = "0000";
         Customer customer = new Customer(id, "Abel", phoneNumber);
-        // When
+
+        // When invoke the method
         underTest.save(customer);
-        // Then
+
+        // Then -> the actual assertion
         Optional<Customer> optionalCustomer = underTest.selectCustomerByPhoneNumber(phoneNumber);
 
         assertThat(optionalCustomer)
@@ -51,17 +54,20 @@ class CustomerRepositoryTest {
 
     }
 
+    // 測試crudRepo 的save
     @Test
     void itShouldSaveCustomer() {
         // Given
         UUID id = UUID.randomUUID();
         Customer customer = new Customer(id, "Abel", "0000");
-        // When
+
+        // When (執行功能) -> 寫一筆資料進去
         underTest.save(customer);
-        // Then
+
+        // Then (驗證執行完的結果，是否符合預期) -> 看剛剛的資料有沒有寫成功?
         Optional<Customer> optionalCustomer = underTest.findById(id);
         assertThat(optionalCustomer)
-                .isPresent()
+                .isPresent() // 如果只是寫到這邊就收工也可以… 再下面是更仔細的測試
                 .hasValueSatisfying(c -> {
 //                    assertThat(c.getId()).isEqualTo(id);
 //                    assertThat(c.getName()).isEqualTo("Abel");
@@ -69,6 +75,26 @@ class CustomerRepositoryTest {
                     assertThat(c).isEqualToComparingFieldByField(customer);
                 });
     }
+
+    @Test
+    void itShouldNotSaveCustomerWhenNameIsNull() {
+        // Given -> setting up
+        UUID id = UUID.randomUUID();
+        Customer customer = new Customer(id, null, "0000");
+
+        // When (執行功能) -> 寫一筆資料進去
+        assertThatThrownBy(()-> underTest.save(customer))
+                .hasMessageContaining("not-null property references a null or transient value : com.amigoscode.testing.customer.Customer.name")
+                        .isInstanceOf(DataIntegrityViolationException.class);
+
+
+        // Then (驗證執行完的結果，是否符合預期) -> 看剛剛的資料有沒有寫成功?
+//        assertThat(underTest.findById(id)).isNotPresent();
+    }
+
+
+
+
 
     @Test
     void itShouldNotSaveCustomerWhenPhoneNumberIsNull() {

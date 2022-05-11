@@ -7,13 +7,15 @@ public class CustomerRegistrationRequest {
 
     private final Customer customer;
 
-    public Customer getCustomer() {
-        return customer;
-    }
 
     public CustomerRegistrationRequest(@JsonProperty Customer customer) {
         this.customer = customer;
     }
+
+    public Customer getCustomer() {
+        return customer;
+    }
+
     @Override
     public String toString() {
         return "CustomerRegistrationRequest{" +

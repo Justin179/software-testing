@@ -9,7 +9,7 @@ import javax.validation.constraints.NotBlank;
 import java.util.UUID;
 
 @Entity
-@JsonIgnoreProperties(value={"id"},allowGetters = true)
+@JsonIgnoreProperties(value={"id"},allowGetters = true) // 不進只出
 public class Customer {
 
     // JPA必要的
@@ -23,6 +23,8 @@ public class Customer {
     @NotBlank
     @Column(nullable = false, unique = true)
     private String phoneNumber;
+
+
 
     public Customer(UUID id, String name, String phoneNumber) {
         this.id = id;

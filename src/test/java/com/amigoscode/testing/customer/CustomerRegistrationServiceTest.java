@@ -20,26 +20,26 @@ import static org.mockito.Mockito.never;
 
 class CustomerRegistrationServiceTest {
 
-    @Mock
-    private CustomerRepository customerRepository;
 
     @Captor
     private ArgumentCaptor<Customer> customerArgumentCaptor;
 
+
+    @Mock // 成對1
+    private CustomerRepository customerRepository;
     private CustomerRegistrationService underTest;
 
     @BeforeEach
     void setUp() {
-        MockitoAnnotations.initMocks(this);
+        MockitoAnnotations.initMocks(this); // 成對1
         underTest = new CustomerRegistrationService(customerRepository);
     }
 
     @Test
     void itShouldSaveNewCustomer(){
-        // given
+        // given -> setting up
         String phoneNumber = "000099";
         Customer customer = new Customer(UUID.randomUUID(), "Maryam", phoneNumber);
-
         // ... a request
         CustomerRegistrationRequest request = new CustomerRegistrationRequest(customer);
 
@@ -54,32 +54,10 @@ class CustomerRegistrationServiceTest {
         then(customerRepository).should().save(customerArgumentCaptor.capture());
 
         Customer customerArgumentCaptorValue = customerArgumentCaptor.getValue();
-        assertThat(customerArgumentCaptorValue).isEqualToComparingFieldByField(customer);
+        assertThat(customerArgumentCaptorValue).isEqualTo(customer); // test cases
     }
 
-    @Test
-    void itShouldSaveNewCustomerWhenIdIsNull(){
-        // given
-        String phoneNumber = "000099";
-        Customer customer = new Customer(null, "Maryam", phoneNumber);
 
-        // ... a request
-        CustomerRegistrationRequest request = new CustomerRegistrationRequest(customer);
-
-        // ... no customer with phone number passed
-        given(customerRepository.selectCustomerByPhoneNumber(phoneNumber))
-                .willReturn(Optional.empty());
-
-        // when
-        underTest.registerNewCustomer(request);
-
-        // then
-        then(customerRepository).should().save(customerArgumentCaptor.capture());
-
-        Customer customerArgumentCaptorValue = customerArgumentCaptor.getValue();
-        assertThat(customerArgumentCaptorValue).isEqualToIgnoringGivenFields(customer,"id");
-        assertThat(customerArgumentCaptorValue.getId()).isNotNull();
-    }
 
     @Test
     void itShouldNotSaveCustomerWhenCustomerExists(){
@@ -128,6 +106,34 @@ class CustomerRegistrationServiceTest {
         //
         then(customerRepository).should(never()).save(any(Customer.class));
     }
+
+    @Test
+    void itShouldSaveNewCustomerWhenIdIsNull(){
+        // given
+        String phoneNumber = "000099";
+        Customer customer = new Customer(null, "Maryam", phoneNumber);
+
+        // ... a request
+        CustomerRegistrationRequest request = new CustomerRegistrationRequest(customer);
+
+        // ... no customer with phone number passed
+        given(customerRepository.selectCustomerByPhoneNumber(phoneNumber))
+                .willReturn(Optional.empty());
+
+        // when
+        underTest.registerNewCustomer(request);
+
+        // then
+        then(customerRepository).should().save(customerArgumentCaptor.capture());
+
+        Customer customerArgumentCaptorValue = customerArgumentCaptor.getValue();
+        assertThat(customerArgumentCaptorValue).isEqualToIgnoringGivenFields(customer,"id");
+        assertThat(customerArgumentCaptorValue.getId()).isNotNull();
+    }
+
+
+
+
 }
 
 
